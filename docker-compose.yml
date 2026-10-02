@@ -1,9 +1,10 @@
 services:
 
   postgres:
-    image: postgres:16
-    container_name: personal-postgres
 
+    image: postgres:16
+
+    container_name: personal-postgres
 
     environment:
       POSTGRES_DB: personal_db
@@ -17,10 +18,76 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U personal_user -d personal_db"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U personal_user -d personal_db"
+        ]
+
       interval: 5s
       timeout: 5s
       retries: 10
 
+
+  profile-service:
+
+    image: personal-profile-service:1.0
+
+    container_name: personal-profile-service
+
+    environment:
+
+      SPRING_DATASOURCE_URL:
+        jdbc:postgresql://postgres:5432/personal_db
+
+      SPRING_DATASOURCE_USERNAME:
+        personal_user
+
+      SPRING_DATASOURCE_PASSWORD:
+        personal_password
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+    ports:
+      - "8081:8081"
+
+
+  api-gateway:
+
+    image: personal-api-gateway:1.0
+
+    container_name: personal-api-gateway
+
+    environment:
+
+      PROFILE_SERVICE_URL:
+        http://profile-service:8081
+
+    depends_on:
+
+      - profile-service
+
+    ports:
+      - "8080:8080"
+
+
+  frontend:
+
+    image: personal-website-frontend:1.0
+
+    container_name: personal-website-frontend
+
+    depends_on:
+
+      - api-gateway
+
+    ports:
+      - "5173:80"
+
+
 volumes:
+
   postgres_data:

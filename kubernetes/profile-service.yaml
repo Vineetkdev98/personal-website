@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: profile-service
+  namespace: personal-website
+
+spec:
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: profile-service
+
+  template:
+
+    metadata:
+      labels:
+        app: profile-service
+
+    spec:
+
+      containers:
+
+        - name: profile-service
+
+          image: personal-profile-service:1.0
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+
+            - containerPort: 8081
+
+          env:
+
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/personal_db
+
+            - name: SPRING_DATASOURCE_USERNAME
+              value: personal_user
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: personal_password
+
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: profile-service
+  namespace: personal-website
+
+spec:
+
+  selector:
+    app: profile-service
+
+  ports:
+
+    - port: 8081
+      targetPort: 8081
