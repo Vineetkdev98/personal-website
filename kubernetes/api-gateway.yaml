@@ -25,7 +25,7 @@ spec:
 
         - name: api-gateway
 
-          image: personal-api-gateway:1.0
+          image: personal-api-gateway:2.0
 
           imagePullPolicy: IfNotPresent
 

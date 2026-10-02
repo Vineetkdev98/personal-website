@@ -1,40 +1,72 @@
-  server:
-    port: 8080
+spring:
+  application:
+    name: api-gateway
 
-  spring:
-    application:
-      name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
 
-    cloud:
-      gateway:
-        server:
-          webflux:
-            routes:
-              - id: profile-service
-                uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
-                predicates:
-                  - Path=/api/profile/**
+            - id: profile-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/profile,/api/profile/**
 
-        globalcors:
-          cors-configurations:
-            '[/**]':
-              allowedOrigins:
-                - "http://localhost:5173"
-              allowedMethods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              allowedHeaders:
-                - "*"
+            - id: career-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/career,/api/career/**
 
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,gateway
+            - id: skills-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/skills,/api/skills/**
 
-    endpoint:
-      health:
-        show-details: always
+            - id: education-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/education,/api/education/**
+
+            - id: achievements-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/achievements,/api/achievements/**
+
+            - id: hobbies-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/hobbies,/api/hobbies/**
+
+            - id: certifications-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/certifications,/api/certifications/**
+
+
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always

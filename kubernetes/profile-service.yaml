@@ -25,7 +25,7 @@ spec:
 
         - name: profile-service
 
-          image: personal-profile-service:1.0
+          image: personal-profile-service:2.0
 
           imagePullPolicy: IfNotPresent
 
