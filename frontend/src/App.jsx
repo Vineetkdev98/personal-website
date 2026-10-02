@@ -5,6 +5,7 @@ function App() {
     const [profile, setProfile] = useState(null);
     const [career, setCareer] = useState([]);
     const [skills, setSkills] = useState([]);
+    const [projects, setProjects] = useState([]);
     const [education, setEducation] = useState([]);
     const [achievements, setAchievements] = useState([]);
     const [certifications, setCertifications] = useState([]);
@@ -26,6 +27,7 @@ function App() {
                 fetch("/api/profile"),
                 fetch("/api/career"),
                 fetch("/api/skills"),
+                fetch("/api/projects"),
                 fetch("/api/education"),
                 fetch("/api/achievements"),
                 fetch("/api/certifications"),
@@ -42,6 +44,7 @@ function App() {
                 profileData,
                 careerData,
                 skillsData,
+                projectsData,
                 educationData,
                 achievementsData,
                 certificationData,
@@ -53,6 +56,7 @@ function App() {
             setProfile(profileData?.[0] || null);
             setCareer(careerData || []);
             setSkills(skillsData || []);
+            setProjects(projectsData || []);
             setEducation(educationData || []);
             setAchievements(achievementsData || []);
             setCertifications(certificationData || []);
@@ -67,9 +71,9 @@ function App() {
 
     if (loading) {
         return (
-            <div className="loading-screen">
+            <div className="loading-page">
                 <div className="loading-spinner" />
-                <p>Loading portfolio...</p>
+                <p>Loading personal website...</p>
             </div>
         );
     }
@@ -77,11 +81,11 @@ function App() {
     if (error) {
         return (
             <div className="error-page">
-                <div className="error-box">
-                    <span className="error-icon">!</span>
+                <div className="error-card">
+                    <div className="error-icon">!</div>
                     <h2>Something went wrong</h2>
                     <p>{error}</p>
-                    <button onClick={loadData}>Try Again</button>
+                    <button onClick={loadData}>Retry</button>
                 </div>
             </div>
         );
@@ -90,12 +94,11 @@ function App() {
     return (
         <div className="app">
 
-            {/* ================= HEADER ================= */}
-
+            {/* Header */}
             <header className="header">
-                <div className="header-content">
+                <div className="container header-content">
 
-                    <a href="#about" className="logo">
+                    <a className="logo" href="#about">
                         {profile?.name || "Personal Website"}
                     </a>
 
@@ -103,6 +106,8 @@ function App() {
                         <a href="#about">About</a>
                         <a href="#career">Career</a>
                         <a href="#skills">Skills</a>
+                        <a href="#projects">Projects</a>
+                        <a href="#resume">Resume</a>
                         <a href="#education">Education</a>
                         <a href="#achievements">Achievements</a>
                         <a href="#certifications">Certifications</a>
@@ -114,111 +119,93 @@ function App() {
 
             <main>
 
-                {/* ================= HERO ================= */}
-
+                {/* Hero */}
                 <section className="hero" id="about">
-                    <div className="container hero-container">
+                    <div className="container hero-content">
 
-                        <div className="hero-layout">
+                        <div className="hero-text">
 
-                            <div className="hero-text">
+                            <p className="eyebrow">WELCOME</p>
 
-                                <p className="eyebrow hero-eyebrow">
-                                    TECHNOLOGY PROFESSIONAL
-                                </p>
+                            <h1>
+                                {profile?.name || "Your Name"}
+                            </h1>
 
-                                <h1>
-                                    {profile?.name || "Your Name"}
-                                </h1>
+                            <h2>
+                                {profile?.headline || "Technology Professional"}
+                            </h2>
 
-                                <h2>
-                                    {profile?.headline ||
-                                        "Technology Professional"}
-                                </h2>
+                            <p className="hero-bio">
+                                {profile?.bio ||
+                                    "Welcome to my personal website."}
+                            </p>
 
-                                {profile?.bio && (
-                                    <p className="hero-bio">
-                                        {profile.bio}
-                                    </p>
+                            <div className="profile-meta">
+
+                                {profile?.location && (
+                                    <span>
+                                        <span className="meta-icon">●</span>
+                                        {profile.location}
+                                    </span>
                                 )}
 
-                                <div className="hero-meta">
-
-                                    {profile?.location && (
-                                        <span>
-                                            <span className="meta-icon">
-                                                ●
-                                            </span>
-                                            {profile.location}
-                                        </span>
-                                    )}
-
-                                    {profile?.email && (
-                                        <a href={`mailto:${profile.email}`}>
-                                            <span className="meta-icon">
-                                                @
-                                            </span>
-                                            {profile.email}
-                                        </a>
-                                    )}
-
-                                </div>
-
-                                <div className="hero-actions">
-
-                                    {profile?.linkedinUrl && (
-                                        <a
-                                            href={profile.linkedinUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="primary-button"
-                                        >
-                                            LinkedIn
-                                            <span>↗</span>
-                                        </a>
-                                    )}
-
-                                    {profile?.githubUrl && (
-                                        <a
-                                            href={profile.githubUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="secondary-button"
-                                        >
-                                            GitHub
-                                            <span>↗</span>
-                                        </a>
-                                    )}
-
-                                </div>
+                                {profile?.email && (
+                                    <span>
+                                        <span className="meta-icon">✉</span>
+                                        {profile.email}
+                                    </span>
+                                )}
 
                             </div>
 
-                            <div className="hero-profile">
+                            <div className="hero-actions">
 
-                                {profile?.profileImageUrl ? (
-                                    <img
-                                        className="profile-image"
-                                        src={profile.profileImageUrl}
-                                        alt={profile.name}
-                                    />
-                                ) : (
-                                    <div className="profile-placeholder">
-                                        {getInitials(profile?.name)}
-                                    </div>
+                                {profile?.linkedinUrl && (
+                                    <a
+                                        href={profile.linkedinUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="primary-button"
+                                    >
+                                        LinkedIn
+                                    </a>
                                 )}
 
-                                <div className="profile-decoration" />
+                                {profile?.githubUrl && (
+                                    <a
+                                        href={profile.githubUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="secondary-button"
+                                    >
+                                        GitHub
+                                    </a>
+                                )}
 
                             </div>
+
+                        </div>
+
+                        <div className="hero-profile">
+
+                            {profile?.profileImageUrl ? (
+                                <img
+                                    className="profile-image"
+                                    src={profile.profileImageUrl}
+                                    alt={profile.name}
+                                />
+                            ) : (
+                                <div className="profile-placeholder">
+                                    {getInitials(profile?.name)}
+                                </div>
+                            )}
 
                         </div>
 
                     </div>
                 </section>
 
-                {/* ================= CAREER ================= */}
-
+                {/* Career */}
                 <section className="section" id="career">
                     <div className="container">
 
@@ -239,54 +226,41 @@ function App() {
                                         key={item.id}
                                     >
 
-                                        <div className="timeline-line" />
+                                        <div className="timeline-marker" />
 
-                                        <div className="timeline-dot" />
+                                        <div className="content-card">
 
-                                        <div className="timeline-content">
-
-                                            <div className="career-top">
+                                            <div className="card-header">
 
                                                 <div>
-                                                    <h3 className="career-role">
-                                                        {item.role}
-                                                    </h3>
-
-                                                    <p className="career-company">
-                                                        {item.company}
-                                                    </p>
+                                                    <h3>{item.role}</h3>
+                                                    <h4>{item.company}</h4>
                                                 </div>
 
                                                 {item.current && (
-                                                    <span className="current-badge">
+                                                    <span className="badge">
                                                         Current
                                                     </span>
                                                 )}
 
                                             </div>
 
-                                            <div className="career-meta">
+                                            <p className="date-text">
+                                                {formatDate(item.startDate)}
+                                                {" — "}
+                                                {item.current
+                                                    ? "Present"
+                                                    : formatDate(item.endDate)}
+                                            </p>
 
-                                                <span>
-                                                    {formatDate(item.startDate)}
-                                                    {" — "}
-                                                    {item.current
-                                                        ? "Present"
-                                                        : formatDate(
-                                                              item.endDate
-                                                          )}
-                                                </span>
-
-                                                {item.location && (
-                                                    <span>
-                                                        {item.location}
-                                                    </span>
-                                                )}
-
-                                            </div>
+                                            {item.location && (
+                                                <p className="muted">
+                                                    {item.location}
+                                                </p>
+                                            )}
 
                                             {item.description && (
-                                                <p className="career-description">
+                                                <p className="card-description">
                                                     {item.description}
                                                 </p>
                                             )}
@@ -302,18 +276,14 @@ function App() {
                     </div>
                 </section>
 
-                {/* ================= SKILLS ================= */}
-
-                <section
-                    className="section section-light"
-                    id="skills"
-                >
+                {/* Skills */}
+                <section className="section section-light" id="skills">
                     <div className="container">
 
                         <SectionHeader
                             eyebrow="EXPERTISE"
                             title="Skills"
-                            description="Technologies and areas of professional expertise."
+                            description="Technologies and capabilities used across projects."
                         />
 
                         {skills.length === 0 ? (
@@ -326,11 +296,16 @@ function App() {
                                         className="skill-card"
                                         key={skill.id}
                                     >
+                                        <div className="skill-icon">
+                                            {getInitials(skill.name)}
+                                        </div>
 
-                                        <div className="skill-top">
-                                            <div className="skill-icon">
-                                                {getInitials(skill.name)}
-                                            </div>
+                                        <div>
+                                            <h3>{skill.name}</h3>
+
+                                            {skill.category && (
+                                                <p>{skill.category}</p>
+                                            )}
 
                                             {skill.proficiency && (
                                                 <span className="skill-level">
@@ -338,13 +313,6 @@ function App() {
                                                 </span>
                                             )}
                                         </div>
-
-                                        <h3>{skill.name}</h3>
-
-                                        {skill.category && (
-                                            <p>{skill.category}</p>
-                                        )}
-
                                     </article>
                                 ))}
 
@@ -354,21 +322,236 @@ function App() {
                     </div>
                 </section>
 
-                {/* ================= EDUCATION ================= */}
+                {/* Projects */}
+                <section className="section" id="projects">
+                    <div className="container">
 
-                <section className="section" id="education">
+                        <SectionHeader
+                            eyebrow="SELECTED WORK"
+                            title="Projects"
+                            description="Selected technology projects and engineering initiatives."
+                        />
+
+                        {projects.length === 0 ? (
+                            <EmptyState message="No projects available." />
+                        ) : (
+                            <div className="projects-grid">
+
+                                {projects
+                                    .sort(
+                                        (a, b) =>
+                                            (a.displayOrder ?? 0) -
+                                            (b.displayOrder ?? 0)
+                                    )
+                                    .map((project) => (
+                                        <article
+                                            className={`project-card ${
+                                                project.featured
+                                                    ? "featured-project"
+                                                    : ""
+                                            }`}
+                                            key={project.id}
+                                        >
+
+                                            {project.imageUrl ? (
+                                                <div className="project-image">
+                                                    <img
+                                                        src={project.imageUrl}
+                                                        alt={project.title || project.name}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="project-image-placeholder">
+                                                    <span>
+                                                        {getInitials(
+                                                            project.name
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <div className="project-content">
+
+                                                <div className="project-top">
+
+                                                    <div>
+                                                        <h3>
+                                                            {project.title ||
+                                                                project.name}
+                                                        </h3>
+
+                                                        {project.title &&
+                                                            project.name &&
+                                                            project.title !==
+                                                            project.name && (
+                                                                <p className="project-name">
+                                                                    {
+                                                                        project.name
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                    </div>
+
+                                                    {project.featured && (
+                                                        <span className="featured-badge">
+                                                            Featured
+                                                        </span>
+                                                    )}
+
+                                                </div>
+
+                                                {project.description && (
+                                                    <p className="project-description">
+                                                        {project.description}
+                                                    </p>
+                                                )}
+
+                                                {project.role && (
+                                                    <div className="project-role">
+                                                        <span>Role</span>
+                                                        <strong>
+                                                            {project.role}
+                                                        </strong>
+                                                    </div>
+                                                )}
+
+                                                {(project.startDate ||
+                                                    project.endDate) && (
+                                                    <p className="project-date">
+                                                        {formatDate(
+                                                            project.startDate
+                                                        )}
+                                                        {" — "}
+                                                        {project.endDate
+                                                            ? formatDate(
+                                                                project.endDate
+                                                            )
+                                                            : "Present"}
+                                                    </p>
+                                                )}
+
+                                                {project.technologies && (
+                                                    <div className="technology-list">
+
+                                                        {project.technologies
+                                                            .split(",")
+                                                            .map(
+                                                                (
+                                                                    technology,
+                                                                    index
+                                                                ) => (
+                                                                    <span
+                                                                        className="technology-tag"
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                    >
+                                                                        {technology.trim()}
+                                                                    </span>
+                                                                )
+                                                            )}
+
+                                                    </div>
+                                                )}
+
+                                                <div className="project-links">
+
+                                                    {project.githubUrl && (
+                                                        <a
+                                                            href={
+                                                                project.githubUrl
+                                                            }
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            GitHub →
+                                                        </a>
+                                                    )}
+
+                                                    {project.demoUrl && (
+                                                        <a
+                                                            href={
+                                                                project.demoUrl
+                                                            }
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Live Demo →
+                                                        </a>
+                                                    )}
+
+                                                </div>
+
+                                            </div>
+
+                                        </article>
+                                    ))}
+
+                            </div>
+                        )}
+
+                    </div>
+                </section>
+
+                <section className="resume-section" id="resume">
+                    <div className="container">
+
+                        <div className="resume-card">
+
+                            <div className="resume-content">
+
+                                <p className="eyebrow">PROFESSIONAL PROFILE</p>
+
+                                <h2>Resume</h2>
+
+                                <p>
+                                    Download my resume to learn more about my professional
+                                    experience, technical expertise, projects and career
+                                    background.
+                                </p>
+
+                            </div>
+
+                            <div className="resume-actions">
+
+                                <a
+                                    href="/resume.pdf"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="primary-button"
+                                >
+                                    View Resume
+                                </a>
+
+                                <a
+                                    href="/resume.pdf"
+                                    download
+                                    className="secondary-button"
+                                >
+                                    Download Resume
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </section>
+
+                {/* Education */}
+                <section className="section section-light" id="education">
                     <div className="container">
 
                         <SectionHeader
                             eyebrow="ACADEMIC BACKGROUND"
                             title="Education"
-                            description="Academic qualifications and educational background."
+                            description="Academic background and qualifications."
                         />
 
                         {education.length === 0 ? (
                             <EmptyState message="No education information available." />
                         ) : (
-                            <div className="content-grid">
+                            <div className="cards-grid">
 
                                 {education.map((item) => (
                                     <article
@@ -376,26 +559,22 @@ function App() {
                                         key={item.id}
                                     >
 
-                                        <div className="card-accent" />
-
-                                        <p className="card-period">
-                                            {item.startYear || ""}
-                                            {item.startYear && item.endYear
-                                                ? " — "
-                                                : ""}
-                                            {item.endYear || ""}
-                                        </p>
-
                                         <h3>{item.degree}</h3>
 
                                         {item.fieldOfStudy && (
-                                            <p className="card-highlight">
+                                            <p className="highlight">
                                                 {item.fieldOfStudy}
                                             </p>
                                         )}
 
-                                        <p className="card-institution">
-                                            {item.institution}
+                                        <h4>{item.institution}</h4>
+
+                                        <p className="date-text">
+                                            {item.startYear || ""}
+                                            {item.startYear &&
+                                                item.endYear &&
+                                                " — "}
+                                            {item.endYear || ""}
                                         </p>
 
                                         {item.description && (
@@ -413,52 +592,46 @@ function App() {
                     </div>
                 </section>
 
-                {/* ================= ACHIEVEMENTS ================= */}
-
-                <section
-                    className="section section-light"
-                    id="achievements"
-                >
+                {/* Achievements */}
+                <section className="section" id="achievements">
                     <div className="container">
 
                         <SectionHeader
                             eyebrow="HIGHLIGHTS"
                             title="Achievements"
-                            description="Selected professional achievements and milestones."
+                            description="Professional milestones and accomplishments."
                         />
 
                         {achievements.length === 0 ? (
                             <EmptyState message="No achievements available." />
                         ) : (
-                            <div className="content-grid">
+                            <div className="cards-grid">
 
                                 {achievements.map((item) => (
                                     <article
-                                        className="achievement-card"
+                                        className="content-card"
                                         key={item.id}
                                     >
 
-                                        <div className="achievement-number">
-                                            +
+                                        <div className="achievement-icon">
+                                            ✓
                                         </div>
 
-                                        <div>
-                                            <h3>{item.title}</h3>
+                                        <h3>{item.title}</h3>
 
-                                            {item.achievementDate && (
-                                                <p className="card-period">
-                                                    {formatDate(
-                                                        item.achievementDate
-                                                    )}
-                                                </p>
-                                            )}
+                                        {item.achievementDate && (
+                                            <p className="date-text">
+                                                {formatDate(
+                                                    item.achievementDate
+                                                )}
+                                            </p>
+                                        )}
 
-                                            {item.description && (
-                                                <p className="card-description">
-                                                    {item.description}
-                                                </p>
-                                            )}
-                                        </div>
+                                        {item.description && (
+                                            <p className="card-description">
+                                                {item.description}
+                                            </p>
+                                        )}
 
                                     </article>
                                 ))}
@@ -469,12 +642,8 @@ function App() {
                     </div>
                 </section>
 
-                {/* ================= CERTIFICATIONS ================= */}
-
-                <section
-                    className="section"
-                    id="certifications"
-                >
+                {/* Certifications */}
+                <section className="section section-light" id="certifications">
                     <div className="container">
 
                         <SectionHeader
@@ -486,52 +655,43 @@ function App() {
                         {certifications.length === 0 ? (
                             <EmptyState message="No certifications available." />
                         ) : (
-                            <div className="content-grid">
+                            <div className="cards-grid">
 
                                 {certifications.map((item) => (
                                     <article
-                                        className="certification-card"
+                                        className="content-card"
                                         key={item.id}
                                     >
 
                                         <div className="certificate-icon">
-                                            ✓
+                                            ◈
                                         </div>
 
-                                        <div className="certificate-content">
+                                        <h3>{item.name}</h3>
 
-                                            <h3>{item.name}</h3>
+                                        {item.issuer && (
+                                            <p className="highlight">
+                                                {item.issuer}
+                                            </p>
+                                        )}
 
-                                            {item.issuer && (
-                                                <p className="certificate-issuer">
-                                                    {item.issuer}
-                                                </p>
-                                            )}
+                                        {item.issueDate && (
+                                            <p className="date-text">
+                                                Issued{" "}
+                                                {formatDate(item.issueDate)}
+                                            </p>
+                                        )}
 
-                                            {item.issueDate && (
-                                                <p className="card-period">
-                                                    Issued{" "}
-                                                    {formatDate(
-                                                        item.issueDate
-                                                    )}
-                                                </p>
-                                            )}
-
-                                            {item.credentialUrl && (
-                                                <a
-                                                    href={
-                                                        item.credentialUrl
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="card-link"
-                                                >
-                                                    View Credential
-                                                    <span>↗</span>
-                                                </a>
-                                            )}
-
-                                        </div>
+                                        {item.credentialUrl && (
+                                            <a
+                                                href={item.credentialUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="card-link"
+                                            >
+                                                View Credential →
+                                            </a>
+                                        )}
 
                                     </article>
                                 ))}
@@ -542,18 +702,14 @@ function App() {
                     </div>
                 </section>
 
-                {/* ================= HOBBIES ================= */}
-
-                <section
-                    className="section section-light"
-                    id="hobbies"
-                >
+                {/* Hobbies */}
+                <section className="section" id="hobbies">
                     <div className="container">
 
                         <SectionHeader
-                            eyebrow="BEYOND WORK"
-                            title="Hobbies & Interests"
-                            description="A few interests outside of professional work."
+                            eyebrow="PERSONAL"
+                            title="Hobbies"
+                            description="Things I enjoy exploring outside of work."
                         />
 
                         {hobbies.length === 0 ? (
@@ -566,21 +722,11 @@ function App() {
                                         className="hobby-card"
                                         key={item.id}
                                     >
+                                        <h3>{item.name}</h3>
 
-                                        <div className="hobby-icon">
-                                            ✦
-                                        </div>
-
-                                        <div>
-                                            <h3>{item.name}</h3>
-
-                                            {item.description && (
-                                                <p>
-                                                    {item.description}
-                                                </p>
-                                            )}
-                                        </div>
-
+                                        {item.description && (
+                                            <p>{item.description}</p>
+                                        )}
                                     </article>
                                 ))}
 
@@ -592,24 +738,16 @@ function App() {
 
             </main>
 
-            {/* ================= FOOTER ================= */}
-
             <footer className="footer">
-                <div className="container footer-content">
+                <div className="container">
 
-                    <div>
-                        <p className="footer-name">
-                            {profile?.name || "Personal Website"}
-                        </p>
-
-                        <p className="footer-copy">
-                            Technology • Architecture • Engineering
-                        </p>
-                    </div>
-
-                    <p className="footer-copyright">
+                    <p>
                         © {new Date().getFullYear()}{" "}
                         {profile?.name || "Personal Website"}
+                    </p>
+
+                    <p>
+                        Built with React, Spring Boot & PostgreSQL
                     </p>
 
                 </div>
@@ -619,54 +757,40 @@ function App() {
     );
 }
 
-
-/* =========================================================
-   COMPONENTS
-   ========================================================= */
-
 function SectionHeader({ eyebrow, title, description }) {
     return (
         <div className="section-header">
+
             <p className="eyebrow">{eyebrow}</p>
 
             <h2>{title}</h2>
 
-            {description && (
-                <p className="section-description">
-                    {description}
-                </p>
-            )}
+            {description && <p>{description}</p>}
+
         </div>
     );
 }
-
 
 function EmptyState({ message }) {
     return (
         <div className="empty-state">
-            {message}
+            <p>{message}</p>
         </div>
     );
 }
 
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-function getInitials(name) {
-    if (!name) {
-        return "P";
+function getInitials(value) {
+    if (!value) {
+        return "PW";
     }
 
-    return name
+    return value
         .split(" ")
         .filter(Boolean)
         .slice(0, 2)
-        .map((part) => part[0].toUpperCase())
+        .map((part) => part.charAt(0).toUpperCase())
         .join("");
 }
-
 
 function formatDate(value) {
     if (!value) {
@@ -680,6 +804,5 @@ function formatDate(value) {
         month: "short"
     });
 }
-
 
 export default App;
