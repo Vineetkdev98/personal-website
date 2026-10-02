@@ -11,38 +11,42 @@ spring:
             - id: profile-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/profile,/api/profile/**
+                - Path=/api/profile/**
 
             - id: career-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/career,/api/career/**
+                - Path=/api/career/**
 
             - id: skills-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/skills,/api/skills/**
+                - Path=/api/skills/**
 
             - id: education-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/education,/api/education/**
+                - Path=/api/education/**
 
             - id: achievements-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/achievements,/api/achievements/**
+                - Path=/api/achievements/**
 
             - id: hobbies-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/hobbies,/api/hobbies/**
+                - Path=/api/hobbies/**
 
             - id: certifications-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/certifications,/api/certifications/**
+                - Path=/api/certifications/**
 
+            - id: projects-service
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/projects/**
 
 
       globalcors:
