@@ -1,0 +1,26 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: personal-postgres
+
+
+    environment:
+      POSTGRES_DB: personal_db
+      POSTGRES_USER: personal_user
+      POSTGRES_PASSWORD: personal_password
+
+    ports:
+      - "5442:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U personal_user -d personal_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

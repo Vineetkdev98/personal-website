@@ -1,0 +1,40 @@
+  server:
+    port: 8080
+
+  spring:
+    application:
+      name: api-gateway
+
+    cloud:
+      gateway:
+        server:
+          webflux:
+            routes:
+              - id: profile-service
+                uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
+                predicates:
+                  - Path=/api/profile/**
+
+        globalcors:
+          cors-configurations:
+            '[/**]':
+              allowedOrigins:
+                - "http://localhost:5173"
+              allowedMethods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              allowedHeaders:
+                - "*"
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,gateway
+
+    endpoint:
+      health:
+        show-details: always

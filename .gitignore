@@ -1,0 +1,25 @@
+# Java / Maven
+target/
+*.class
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+frontend/dist/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Docker
+docker-data/
