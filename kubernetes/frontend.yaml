@@ -25,7 +25,7 @@ spec:
 
         - name: frontend
 
-          image: personal-website-frontend:3.1
+          image: personal-website-frontend:3.0
 
           imagePullPolicy: IfNotPresent
 
