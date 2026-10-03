@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import Admin from "./Admin";
 
 function App() {
     const [profile, setProfile] = useState(null);
@@ -13,6 +14,11 @@ function App() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    if (window.location.pathname === "/admin") {
+        return <Admin />;
+    }
+
 
     useEffect(() => {
         loadData();
