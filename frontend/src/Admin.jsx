@@ -117,7 +117,65 @@ function emptyForm(config) {
     return result;
 }
 
+/*
+ * Common API helper.
+ *
+ * Every request from the Admin UI automatically gets:
+ *
+ * Authorization: Bearer <JWT>
+ */
+async function apiRequest(url, options = {}) {
+
+    const token = localStorage.getItem("jwtToken");
+
+    const headers = {
+        ...(options.headers || {})
+    };
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+
+    /*
+     * Phase 5.6 Gateway will return 401 when
+     * the JWT is invalid or expired.
+     */
+    if (response.status === 401) {
+
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+
+        window.location.reload();
+
+        throw new Error("Session expired. Please login again.");
+    }
+
+    return response;
+}
+
 function Admin() {
+
+    /*
+     * Authentication state
+     */
+    const [isAuthenticated, setIsAuthenticated] = useState(
+        Boolean(localStorage.getItem("jwtToken"))
+    );
+
+    const [loginUsername, setLoginUsername] = useState("");
+    const [loginPassword, setLoginPassword] = useState("");
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError] = useState("");
+
+    /*
+     * Existing Admin state
+     */
     const [activeModule, setActiveModule] = useState("profile");
     const [items, setItems] = useState([]);
     const [form, setForm] = useState({});
@@ -128,16 +186,122 @@ function Admin() {
 
     const config = modules[activeModule];
 
+    /*
+     * Login
+     */
+    async function handleLogin(event) {
+
+        event.preventDefault();
+
+        setLoginLoading(true);
+        setLoginError("");
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE}/auth/login`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: loginUsername,
+                        password: loginPassword
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Invalid username or password"
+                );
+            }
+
+            /*
+             * Store JWT
+             */
+            localStorage.setItem(
+                "jwtToken",
+                data.token
+            );
+
+            localStorage.setItem(
+                "username",
+                data.username
+            );
+
+            localStorage.setItem(
+                "role",
+                data.role
+            );
+
+            /*
+             * Update React state
+             */
+            setIsAuthenticated(true);
+
+            setLoginUsername("");
+            setLoginPassword("");
+            setLoginError("");
+
+        } catch (err) {
+
+            console.error("Login error:", err);
+
+            setLoginError(
+                err.message || "Login failed"
+            );
+
+        } finally {
+
+            setLoginLoading(false);
+        }
+    }
+
+    /*
+     * Logout
+     */
+    function handleLogout() {
+
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+
+        setIsAuthenticated(false);
+
+        setItems([]);
+        setForm({});
+        setEditingId(null);
+        setMessage("");
+        setError("");
+    }
+
+    /*
+     * Load records whenever the selected module changes.
+     */
     useEffect(() => {
+
+        if (!isAuthenticated) {
+            return;
+        }
+
         loadItems();
-    }, [activeModule]);
+
+    }, [activeModule, isAuthenticated]);
 
     async function loadItems() {
+
         setLoading(true);
         setError("");
 
         try {
-            const response = await fetch(`${API_BASE}${config.endpoint}`);
+
+            const response = await apiRequest(
+                `${API_BASE}${config.endpoint}`
+            );
 
             if (!response.ok) {
                 throw new Error("Failed to load data");
@@ -145,15 +309,24 @@ function Admin() {
 
             const data = await response.json();
 
-            setItems(Array.isArray(data) ? data : []);
+            setItems(
+                Array.isArray(data)
+                    ? data
+                    : []
+            );
+
         } catch (err) {
+
             setError(err.message);
+
         } finally {
+
             setLoading(false);
         }
     }
 
     function startCreate() {
+
         setEditingId(null);
         setForm(emptyForm(config));
         setMessage("");
@@ -161,6 +334,7 @@ function Admin() {
     }
 
     function startEdit(item) {
+
         setEditingId(item.id);
         setForm({ ...item });
         setMessage("");
@@ -168,18 +342,22 @@ function Admin() {
     }
 
     function handleChange(name, type, value) {
+
         setForm(previous => ({
             ...previous,
             [name]:
                 type === "checkbox"
                     ? value
                     : type === "number"
-                        ? value === "" ? "" : Number(value)
+                        ? value === ""
+                            ? ""
+                            : Number(value)
                         : value
         }));
     }
 
     async function handleSubmit(event) {
+
         event.preventDefault();
 
         setLoading(true);
@@ -187,23 +365,33 @@ function Admin() {
         setError("");
 
         try {
+
             const url = editingId
                 ? `${API_BASE}${config.endpoint}/${editingId}`
                 : `${API_BASE}${config.endpoint}`;
 
-            const method = editingId ? "PUT" : "POST";
+            const method = editingId
+                ? "PUT"
+                : "POST";
 
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(form)
-            });
+            const response = await apiRequest(
+                url,
+                {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(form)
+                }
+            );
 
             if (!response.ok) {
+
                 const text = await response.text();
-                throw new Error(text || "Save failed");
+
+                throw new Error(
+                    text || "Save failed"
+                );
             }
 
             setMessage(
@@ -216,14 +404,19 @@ function Admin() {
             setForm(emptyForm(config));
 
             await loadItems();
+
         } catch (err) {
+
             setError(err.message);
+
         } finally {
+
             setLoading(false);
         }
     }
 
     async function deleteItem(id) {
+
         const confirmed = window.confirm(
             `Delete this ${config.label.toLowerCase()} record?`
         );
@@ -237,7 +430,8 @@ function Admin() {
         setError("");
 
         try {
-            const response = await fetch(
+
+            const response = await apiRequest(
                 `${API_BASE}${config.endpoint}/${id}`,
                 {
                     method: "DELETE"
@@ -248,22 +442,33 @@ function Admin() {
                 throw new Error("Delete failed");
             }
 
-            setMessage(`${config.label} deleted successfully.`);
+            setMessage(
+                `${config.label} deleted successfully.`
+            );
 
             if (editingId === id) {
                 startCreate();
             }
 
             await loadItems();
+
         } catch (err) {
+
             setError(err.message);
+
         } finally {
+
             setLoading(false);
         }
     }
 
     function formatValue(value) {
-        if (value === null || value === undefined || value === "") {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
             return "—";
         }
 
@@ -274,55 +479,242 @@ function Admin() {
         return String(value);
     }
 
+    /*
+     * ============================================================
+     * LOGIN SCREEN
+     * ============================================================
+     */
+
+    if (!isAuthenticated) {
+
+        return (
+            <div className="admin-page">
+
+                <header className="admin-header">
+
+                    <div>
+                        <p className="admin-eyebrow">
+                            ADMINISTRATION
+                        </p>
+
+                        <h1>Admin Login</h1>
+
+                        <p>
+                            Login to manage your personal website.
+                        </p>
+                    </div>
+
+                    <a
+                        href="/"
+                        className="admin-back-button"
+                    >
+                        ← Back to Website
+                    </a>
+
+                </header>
+
+                <div
+                    style={{
+                        maxWidth: "500px",
+                        margin: "60px auto",
+                        padding: "0 20px"
+                    }}
+                >
+
+                    <div className="admin-form-card">
+
+                        <h3>
+                            Login
+                        </h3>
+
+                        <form onSubmit={handleLogin}>
+
+                            <div className="admin-form-grid">
+
+                                <label className="admin-field full">
+
+                                    <span>
+                                        Username
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        value={loginUsername}
+                                        onChange={event =>
+                                            setLoginUsername(
+                                                event.target.value
+                                            )
+                                        }
+                                        placeholder="Enter username"
+                                        autoComplete="username"
+                                        required
+                                    />
+
+                                </label>
+
+                                <label className="admin-field full">
+
+                                    <span>
+                                        Password
+                                    </span>
+
+                                    <input
+                                        type="password"
+                                        value={loginPassword}
+                                        onChange={event =>
+                                            setLoginPassword(
+                                                event.target.value
+                                            )
+                                        }
+                                        placeholder="Enter password"
+                                        autoComplete="current-password"
+                                        required
+                                    />
+
+                                </label>
+
+                            </div>
+
+                            {loginError && (
+                                <div className="admin-message error">
+                                    {loginError}
+                                </div>
+                            )}
+
+                            <div className="admin-form-actions">
+
+                                <button
+                                    type="submit"
+                                    className="admin-primary-button"
+                                    disabled={loginLoading}
+                                >
+                                    {loginLoading
+                                        ? "Logging in..."
+                                        : "Login"}
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        );
+    }
+
+    /*
+     * ============================================================
+     * EXISTING ADMIN CRUD UI
+     * ============================================================
+     */
+
     return (
         <div className="admin-page">
 
             <header className="admin-header">
+
                 <div>
-                    <p className="admin-eyebrow">ADMINISTRATION</p>
-                    <h1>Content Management</h1>
-                    <p>
-                        Manage the information displayed on your personal website.
+
+                    <p className="admin-eyebrow">
+                        ADMINISTRATION
                     </p>
+
+                    <h1>
+                        Content Management
+                    </h1>
+
+                    <p>
+                        Manage the information displayed on your
+                        personal website.
+                    </p>
+
                 </div>
 
-                <a href="/" className="admin-back-button">
-                    ← Back to Website
-                </a>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px"
+                    }}
+                >
+
+                    <span>
+                        {localStorage.getItem("username")}
+                        {" "}
+                        ({localStorage.getItem("role")})
+                    </span>
+
+                    <button
+                        className="admin-secondary-button"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </button>
+
+                    <a
+                        href="/"
+                        className="admin-back-button"
+                    >
+                        ← Back to Website
+                    </a>
+
+                </div>
+
             </header>
 
             <div className="admin-layout">
 
                 <aside className="admin-sidebar">
-                    <h3>Content</h3>
 
-                    {Object.entries(modules).map(([key, value]) => (
-                        <button
-                            key={key}
-                            className={
-                                activeModule === key
-                                    ? "admin-nav-item active"
-                                    : "admin-nav-item"
-                            }
-                            onClick={() => {
-                                setActiveModule(key);
-                                setForm({});
-                                setEditingId(null);
-                                setMessage("");
-                                setError("");
-                            }}
-                        >
-                            {value.label}
-                        </button>
-                    ))}
+                    <h3>
+                        Content
+                    </h3>
+
+                    {Object.entries(modules).map(
+                        ([key, value]) => (
+
+                            <button
+                                key={key}
+                                className={
+                                    activeModule === key
+                                        ? "admin-nav-item active"
+                                        : "admin-nav-item"
+                                }
+                                onClick={() => {
+
+                                    setActiveModule(key);
+                                    setForm({});
+                                    setEditingId(null);
+                                    setMessage("");
+                                    setError("");
+
+                                }}
+                            >
+                                {value.label}
+                            </button>
+
+                        )
+                    )}
+
                 </aside>
 
                 <main className="admin-content">
 
                     <div className="admin-content-header">
+
                         <div>
-                            <p className="admin-eyebrow">MANAGE</p>
-                            <h2>{config.label}</h2>
+
+                            <p className="admin-eyebrow">
+                                MANAGE
+                            </p>
+
+                            <h2>
+                                {config.label}
+                            </h2>
+
                         </div>
 
                         <button
@@ -331,6 +723,7 @@ function Admin() {
                         >
                             + Add {config.label}
                         </button>
+
                     </div>
 
                     {message && (
@@ -357,69 +750,92 @@ function Admin() {
 
                             <div className="admin-form-grid">
 
-                                {config.fields.map(([name, label, type]) => {
+                                {config.fields.map(
+                                    ([name, label, type]) => {
 
-                                    if (type === "checkbox") {
+                                        if (type === "checkbox") {
+
+                                            return (
+                                                <label
+                                                    key={name}
+                                                    className="admin-checkbox"
+                                                >
+
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={
+                                                            Boolean(
+                                                                form[name]
+                                                            )
+                                                        }
+                                                        onChange={event =>
+                                                            handleChange(
+                                                                name,
+                                                                type,
+                                                                event.target.checked
+                                                            )
+                                                        }
+                                                    />
+
+                                                    <span>
+                                                        {label}
+                                                    </span>
+
+                                                </label>
+                                            );
+                                        }
+
                                         return (
                                             <label
                                                 key={name}
-                                                className="admin-checkbox"
+                                                className={
+                                                    type === "textarea"
+                                                        ? "admin-field full"
+                                                        : "admin-field"
+                                                }
                                             >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={Boolean(form[name])}
-                                                    onChange={event =>
-                                                        handleChange(
-                                                            name,
-                                                            type,
-                                                            event.target.checked
-                                                        )
-                                                    }
-                                                />
 
-                                                <span>{label}</span>
+                                                <span>
+                                                    {label}
+                                                </span>
+
+                                                {type === "textarea" ? (
+
+                                                    <textarea
+                                                        value={
+                                                            form[name] ?? ""
+                                                        }
+                                                        onChange={event =>
+                                                            handleChange(
+                                                                name,
+                                                                type,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                    />
+
+                                                ) : (
+
+                                                    <input
+                                                        type={type}
+                                                        value={
+                                                            form[name] ?? ""
+                                                        }
+                                                        onChange={event =>
+                                                            handleChange(
+                                                                name,
+                                                                type,
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                    />
+
+                                                )}
+
                                             </label>
                                         );
                                     }
-
-                                    return (
-                                        <label
-                                            key={name}
-                                            className={
-                                                type === "textarea"
-                                                    ? "admin-field full"
-                                                    : "admin-field"
-                                            }
-                                        >
-                                            <span>{label}</span>
-
-                                            {type === "textarea" ? (
-                                                <textarea
-                                                    value={form[name] ?? ""}
-                                                    onChange={event =>
-                                                        handleChange(
-                                                            name,
-                                                            type,
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            ) : (
-                                                <input
-                                                    type={type}
-                                                    value={form[name] ?? ""}
-                                                    onChange={event =>
-                                                        handleChange(
-                                                            name,
-                                                            type,
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            )}
-                                        </label>
-                                    );
-                                })}
+                                )}
 
                             </div>
 
@@ -430,7 +846,9 @@ function Admin() {
                                     className="admin-primary-button"
                                     disabled={loading}
                                 >
-                                    {editingId ? "Update" : "Create"}
+                                    {editingId
+                                        ? "Update"
+                                        : "Create"}
                                 </button>
 
                                 <button
@@ -444,34 +862,50 @@ function Admin() {
                             </div>
 
                         </form>
+
                     </div>
 
                     <div className="admin-table-card">
 
                         <div className="admin-table-header">
-                            <h3>{config.label} Records</h3>
-                            <span>{items.length} record(s)</span>
+
+                            <h3>
+                                {config.label} Records
+                            </h3>
+
+                            <span>
+                                {items.length} record(s)
+                            </span>
+
                         </div>
 
                         {loading && items.length === 0 ? (
+
                             <p className="admin-empty">
                                 Loading...
                             </p>
+
                         ) : items.length === 0 ? (
+
                             <p className="admin-empty">
-                                No {config.label.toLowerCase()} records found.
+                                No {config.label.toLowerCase()}
+                                {" "}records found.
                             </p>
+
                         ) : (
+
                             <div className="admin-table-wrapper">
 
                                 <table className="admin-table">
 
                                     <thead>
+
                                     <tr>
                                         <th>Record</th>
                                         <th>Details</th>
                                         <th>Actions</th>
                                     </tr>
+
                                     </thead>
 
                                     <tbody>
@@ -497,15 +931,20 @@ function Admin() {
 
                                                 <td>
                                                     <strong>
-                                                        {formatValue(displayField)}
+                                                        {formatValue(
+                                                            displayField
+                                                        )}
                                                     </strong>
                                                 </td>
 
                                                 <td>
-                                                    {formatValue(detailField)}
+                                                    {formatValue(
+                                                        detailField
+                                                    )}
                                                 </td>
 
                                                 <td>
+
                                                     <div className="admin-actions">
 
                                                         <button
@@ -519,7 +958,9 @@ function Admin() {
 
                                                         <button
                                                             onClick={() =>
-                                                                deleteItem(item.id)
+                                                                deleteItem(
+                                                                    item.id
+                                                                )
                                                             }
                                                             className="delete-button"
                                                         >
@@ -527,6 +968,7 @@ function Admin() {
                                                         </button>
 
                                                     </div>
+
                                                 </td>
 
                                             </tr>
