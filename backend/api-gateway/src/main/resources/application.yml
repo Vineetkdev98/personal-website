@@ -78,3 +78,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+    level:
+      org.springframework.cloud.gateway: DEBUG
+      org.springframework.cloud.gateway.route.RouteDefinitionLocator: DEBUG
+      reactor.netty.http.client: DEBUG
