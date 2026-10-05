@@ -25,7 +25,7 @@ spec:
 
         - name: api-gateway
 
-          image: personal-api-gateway:3.0
+          image: personal-api-gateway:4.0
 
           imagePullPolicy: IfNotPresent
 
@@ -37,6 +37,9 @@ spec:
 
             - name: PROFILE_SERVICE_URL
               value: http://profile-service:8081
+
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:8082
 
 
 ---

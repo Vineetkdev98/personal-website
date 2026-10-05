@@ -1,0 +1,35 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5442/personal_db
+    username: personal_user
+    password: personal_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+    secret: ${JWT_SECRET:bXktcGVyc29uYWwtd2Vic2l0ZS1qd3Qtc2VjcmV0LWtleS0yMDI2}
+    expiration-ms: 3600000

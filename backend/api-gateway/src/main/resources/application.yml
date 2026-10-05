@@ -7,6 +7,10 @@ spring:
       server:
         webflux:
           routes:
+            - id: auth-service
+              uri: ${AUTH_SERVICE_URL:http://localhost:8082}
+              predicates:
+               - Path=/api/auth/**
 
             - id: profile-service
               uri: ${PROFILE_SERVICE_URL:http://localhost:8081}
@@ -74,3 +78,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+    level:
+      org.springframework.cloud.gateway: DEBUG
+      org.springframework.cloud.gateway.route.RouteDefinitionLocator: DEBUG
+      reactor.netty.http.client: DEBUG
